@@ -1,3 +1,5 @@
+The goal of this fork is to be portable between cljs + clj.
+
 # algo.generic
 
 Generic versions of commonly used functions, implemented as multimethods

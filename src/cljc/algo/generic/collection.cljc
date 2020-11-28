@@ -16,7 +16,7 @@
            This library defines generic versions of common
            collection-related functions as multimethods that can be
            defined for any type."}
-  clojure.algo.generic.collection
+  cljc.algo.generic.collection
   (:refer-clojure :exclude [assoc conj dissoc empty get into seq]))
 
 ;

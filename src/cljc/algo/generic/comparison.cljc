@@ -16,10 +16,9 @@
            This library defines generic versions of = not= < > <= >= zero?
            as multimethods that can be defined for any type. Of the
            greater/less-than relations, types must minimally implement >."}
-  clojure.algo.generic.comparison
+  cljc.algo.generic.comparison
   (:refer-clojure :exclude [= not= < > <= >= zero? pos? neg? min max])
-  (:use [clojure.algo.generic
-         :only (root-type nulary-type nary-type nary-dispatch)]))
+  (:require [cljc.algo.generic :refer (root-type nulary-type nary-type nary-dispatch)]))
 
 ;
 ; zero? pos? neg?
@@ -166,15 +165,15 @@
 ;
 ; Implementations for Clojure's built-in types
 ;
-(defmethod zero? java.lang.Number
+(defmethod zero? Number
   [x]
   (clojure.core/zero? x))
 
-(defmethod pos? java.lang.Number
+(defmethod pos? Number
   [x]
   (clojure.core/pos? x))
 
-(defmethod neg? java.lang.Number
+(defmethod neg? Number
   [x]
   (clojure.core/neg? x))
 
@@ -182,19 +181,19 @@
   [x y]
   (clojure.core/= x y))
 
-(defmethod > [java.lang.Number java.lang.Number]
+(defmethod > [Number Number]
   [x y]
   (clojure.core/> x y))
 
-(defmethod < [java.lang.Number java.lang.Number]
+(defmethod < [Number Number]
   [x y]
   (clojure.core/< x y))
 
-(defmethod >= [java.lang.Number java.lang.Number]
+(defmethod >= [Number Number]
   [x y]
   (clojure.core/>= x y))
 
-(defmethod <= [java.lang.Number java.lang.Number]
+(defmethod <= [Number Number]
   [x y]
   (clojure.core/<= x y))
 

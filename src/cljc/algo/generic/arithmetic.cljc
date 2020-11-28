@@ -19,7 +19,7 @@
            Everything else is derived from these automatically. Explicit
            binary definitions for - and / can be provided for
            efficiency reasons."}
-  clojure.algo.generic.arithmetic
+  cljc.algo.generic.arithmetic
   (:require
    [cljc.algo.generic
     :refer (root-type nulary-type nary-type nary-dispatch)]

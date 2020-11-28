@@ -13,7 +13,7 @@
 (ns
   ^{:author "Konrad Hinsen"
      :doc "Generic functor interface (fmap)"}
-  clojure.algo.generic.functor)
+  cljc.algo.generic.functor)
 
 
 (defmulti fmap

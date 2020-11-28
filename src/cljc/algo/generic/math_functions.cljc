@@ -20,9 +20,10 @@
            This library defines generic versions of common mathematical
            functions such as sqrt or sin as multimethods that can be
            defined for any type."}
-  clojure.algo.generic.math-functions
-  (:require [clojure.algo.generic.arithmetic :as ga]
-            [clojure.algo.generic.comparison :as gc]))
+  cljc.algo.generic.math-functions
+  (:require [cljc.algo.generic :refer [root-type]]
+            [cljc.algo.generic.arithmetic :as ga]
+            [cljc.algo.generic.comparison :as gc]))
 
 ; This used to be in clojure.contrib.def (by Steve Gilardi),
 ; which has not been migrated to the new contrib collection.
@@ -34,30 +35,30 @@
 ; One-argument math functions
 (defmacro- defmathfn-1
   [name]
-  (let [java-symbol (symbol "java.lang.Math" (str name))]
+  (let [math-symbol (symbol "Math" (str name))]
     `(do
        (defmulti ~name
          ~(str "Return the " name " of x.")
          {:arglists '([~'x])}
          type)
-       (defmethod ~name java.lang.Number
+       (defmethod ~name Number
          [~'x]
-         (~java-symbol ~'x)))))
+         (~math-symbol ~'x)))))
 
 (defn- two-types [x y] [(type x) (type y)])
 
 ; Two-argument math functions
 (defmacro- defmathfn-2
   [name]
-  (let [java-symbol (symbol "java.lang.Math" (str name))]
+  (let [math-symbol (symbol "Math" (str name))]
     `(do
        (defmulti ~name
          ~(str "Return the " name " of x and y.")
          {:arglists '([~'x ~'y])}
          two-types)
-       (defmethod ~name [java.lang.Number java.lang.Number]
+       (defmethod ~name [Number Number]
          [~'x ~'y]
-         (~java-symbol ~'x ~'y)))))
+         (~math-symbol ~'x ~'y)))))
 
 ; List of math functions taken from
 ; http://java.sun.com/j2se/1.4.2/docs/api/java/lang/Math.html
@@ -97,30 +98,32 @@
   (cond (gc/neg? x) (- x)
         :else x))
 
-(defmethod abs java.lang.Number
+(defmethod abs Number
   [x]
-  (java.lang.Math/abs x))
+  (Math/abs x))
 
-(defmethod abs java.math.BigDecimal
-  ([x]
-   (.abs x))
-  ([x math-context]
-   (.abs x math-context)))
+#?(:clj
+   (do
+     (defmethod abs java.math.BigDecimal
+       ([x]
+        (.abs x))
+       ([x math-context]
+        (.abs x math-context)))
 
-(defmethod abs java.math.BigInteger
-  [x]
-  (.abs x))
+     (defmethod abs java.math.BigInteger
+       [x]
+       (.abs x))
 
-(defmethod abs clojure.lang.BigInt
-  [x]
-  (if (nil? (.bipart x))
-    (clojure.lang.BigInt/fromLong (abs (.lpart x)))
-    (clojure.lang.BigInt/fromBigInteger (abs (.bipart x)))))
+     (defmethod abs clojure.lang.BigInt
+       [x]
+       (if (nil? (.bipart x))
+         (clojure.lang.BigInt/fromLong (abs (.lpart x)))
+         (clojure.lang.BigInt/fromBigInteger (abs (.bipart x)))))
 
-(defmethod abs clojure.lang.Ratio
-  [x]
-  (/ (abs (numerator x))
-     (abs (denominator x))))
+     (defmethod abs clojure.lang.Ratio
+       [x]
+       (/ (abs (numerator x))
+          (abs (denominator x))))))
 
 ;
 ; Round
@@ -142,27 +145,31 @@
   {:arglists '([x] [x math-context])}
   (fn [x & more] (type x)))
 
-(doseq [c [java.lang.Float
-           java.lang.Double]]
-  (defmethod round c [x] (java.lang.Math/round x)))
+#?(:clj
+   (do
+     (doseq [c [java.lang.Float
+                java.lang.Double]]
+       (defmethod round c [x] (Math/round x)))
 
-(doseq [c [java.lang.Byte
-           java.lang.Short
-           java.lang.Integer
-           java.lang.Long
-           java.math.BigInteger
-           clojure.lang.BigInt]]
-  (defmethod round c [x] x))
+     (doseq [c [java.lang.Byte
+                java.lang.Short
+                java.lang.Integer
+                java.lang.Long
+                java.math.BigInteger
+                clojure.lang.BigInt]]
+       (defmethod round c [x] x))
 
-(defmethod round java.math.BigDecimal
-  [x math-context]
-  (.round x math-context))
+     (defmethod round java.math.BigDecimal
+       [x math-context]
+       (.round x math-context))
 
-(defmethod round clojure.lang.Ratio
-  ([x]
-   (round (double x)))
-  ([x math-context]
-   (round (bigdec x) math-context)))
+     (defmethod round clojure.lang.Ratio
+       ([x]
+        (round (double x)))
+       ([x math-context]
+        (round (bigdec x) math-context))))
+   :cljs (defmethod round Number [x]
+           (Math/round x)))
 
 
 ;
@@ -237,26 +244,35 @@
   (/ (log (/ (+ 1 z) (- 1 z)))
      2))
 
-(defmethod pow [root-type root-type] [z u]
+(defn pow-by-exp [z u]
   (exp (* u (log z))))
+(defmethod pow [root-type root-type] [z u]
+  (pow-by-exp z u))
 
-(let [>> bit-shift-right
-      &  bit-and]
- (defmethod pow [root-type Long] [z ^long n]
-   (if (neg? n) (/ (pow z (- n)))
-       (loop [n n
-              powof2 z
-              acc 1]
-         (if (pos? n)
-           (recur (>> n 1)
-                  (sqr powof2)
-                  (case (& 1 n)
-                    1 (* acc powof2)
-                    0 acc))
-           acc)))))
+(def & bit-and)
+(def >> bit-shift-right)
 
+(defn powi [z n]
+  (if (neg? n) (/ (pow z (- n)))
+      (loop [n n
+             powof2 z
+             acc 1]
+        (if (pos? n)
+          (recur (>> n 1)
+                 (sqr powof2)
+                 (case (& 1 n)
+                   1 (* acc powof2)
+                   0 acc))
+          acc))))
 
-(prefer-method pow [Number Number] [root-type Long])
+#?(:clj (do
+          (defmethod pow [root-type Long] [z ^long n]
+            (powi z n))
+          (prefer-method pow [Number Number] [root-type Long]))
+   :cljs (defmethod pow [root-type Number] [z n]
+           (if (.isInteger n)
+             (powi z n)
+             (pow-by-exp z n))))
 
 (defmethod sqrt root-type [z] (pow z 1/2))
 
