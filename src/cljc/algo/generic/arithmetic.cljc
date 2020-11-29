@@ -11,24 +11,25 @@
 ;; remove this notice, or any other, from this software.
 
 (ns
-  ^{:author "Konrad Hinsen"
-     :doc "Generic arithmetic interface
+    ^{:author "Konrad Hinsen"
+      :doc "Generic arithmetic interface
            This library defines generic versions of + - * / as multimethods
            that can be defined for any type. The minimal required 
            implementations for a type are binary + and * plus unary - and /.
            Everything else is derived from these automatically. Explicit
            binary definitions for - and / can be provided for
            efficiency reasons."}
-  cljc.algo.generic.arithmetic
+    cljc.algo.generic.arithmetic
   (:require
    [cljc.algo.generic
     :refer (root-type nulary-type nary-type nary-dispatch)]
 
-   [cljc.algo.generic.errors :refer [illegal-argument]]
-   )
+   [cljc.algo.generic.errors :refer [illegal-argument]])
+  #?(:cljs (:require-macros cljc.algo.generic.arithmetic :refer [qsym]))
   (:refer-clojure :exclude [+ - * /]))
 
 ;
+#?(:cljs (def Number js/Number))
 ; Universal zero and one values
 ;
 (defrecord zero-type [])

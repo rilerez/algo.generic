@@ -20,6 +20,8 @@
   (:refer-clojure :exclude [= not= < > <= >= zero? pos? neg? min max])
   (:require [cljc.algo.generic :refer (root-type nulary-type nary-type nary-dispatch)]))
 
+#?(:cljs (def Number js/Number))
+
 ;
 ; zero? pos? neg?
 ;

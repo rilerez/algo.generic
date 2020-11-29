@@ -15,18 +15,24 @@
 ;; of via defmathfn-1.
 
 (ns
-   ^{:author "Konrad Hinsen"
-     :doc "Generic math function interface
+    ^{:author "Konrad Hinsen"
+      :doc "Generic math function interface
            This library defines generic versions of common mathematical
            functions such as sqrt or sin as multimethods that can be
            defined for any type."}
-  cljc.algo.generic.math-functions
-  (:require [cljc.algo.generic :refer [root-type]]
-            [cljc.algo.generic.arithmetic :as ga]
-            [cljc.algo.generic.comparison :as gc]))
+    cljc.algo.generic.math-functions
+    (:require [cljc.algo.generic :refer [root-type]]
+              [cljc.algo.generic.arithmetic :as ga]
+              [cljc.algo.generic.comparison :as gc])
+    #?(:cljs
+       (:require-macros [cljc.algo.generic.math-functions
+                         :refer [defmacro- defmathfn-1 defmathfn-2]])))
 
-; This used to be in clojure.contrib.def (by Steve Gilardi),
-; which has not been migrated to the new contrib collection.
+
+#?(:cljs (def Number js/Number))
+
+;; This used to be in clojure.contrib.def (by Steve Gilardi),
+;; which has not been migrated to the new contrib collection.
 (defmacro defmacro-
   "Same as defmacro but yields a private definition"
   [name & decls]
@@ -249,18 +255,15 @@
 (defmethod pow [root-type root-type] [z u]
   (pow-by-exp z u))
 
-(def & bit-and)
-(def >> bit-shift-right)
-
 (defn powi [z n]
   (if (neg? n) (/ (pow z (- n)))
       (loop [n n
              powof2 z
              acc 1]
         (if (pos? n)
-          (recur (>> n 1)
+          (recur (bit-shift-right n 1)
                  (sqr powof2)
-                 (case (& 1 n)
+                 (case (bit-and 1 n)
                    1 (* acc powof2)
                    0 acc))
           acc))))
